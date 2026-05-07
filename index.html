@@ -988,10 +988,18 @@ function setAngle(angle, btn) {
   console.log('Angle switched to:', angle);
 }
 
-// Signup
+// ─── CONFIGURATION ─────────────────────────────────────────────
+// 1. Follow the setup instructions below to get your script URL
+// 2. Paste it here — that's the only change you need to make
+const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_SCRIPT_URL_HERE';
+// ───────────────────────────────────────────────────────────────
+
+let pendingEmail = '';
+let pendingAngle = '';
+let pendingSource = '';
+
 function handleSignup(inputId, msgId) {
   const input = document.getElementById(inputId);
-  const msg = document.getElementById(msgId);
   const email = input.value.trim();
 
   if (!email || !email.includes('@')) {
@@ -1004,15 +1012,117 @@ function handleSignup(inputId, msgId) {
     return;
   }
 
-  // Store for Wizard MVP validation + track angle
-  const angle = document.body.classList.contains('angle-b') ? 'B' : 'A';
-  const signups = JSON.parse(localStorage.getItem('pawsense_signups') || '[]');
-  signups.push({ email, angle, timestamp: new Date().toISOString(), source: inputId });
-  localStorage.setItem('pawsense_signups', JSON.stringify(signups));
-  console.log(`PawSense signup [Angle ${angle}]:`, email);
+  // Store context for after survey
+  pendingEmail = email;
+  pendingAngle = document.body.classList.contains('angle-b') ? 'B' : 'A';
+  pendingSource = inputId;
 
-  input.closest('.signup-form').style.display = 'none';
-  msg.style.display = 'block';
+  // Hide the form row, show loading state
+  const formEl = input.closest('.signup-form');
+  const btn = formEl.querySelector('.signup-btn');
+  btn.textContent = 'One moment…';
+  btn.disabled = true;
+
+  // Show survey modal after brief pause
+  setTimeout(() => openSurvey(formEl, msgId), 400);
+}
+
+function openSurvey(formEl, msgId) {
+  // Store msgId on modal so we know which success msg to show
+  document.getElementById('survey-modal').dataset.msgId = msgId;
+  document.getElementById('survey-modal').dataset.formEl = formEl ? formEl.id || '' : '';
+  document.getElementById('survey-overlay').style.display = 'flex';
+
+  // Reset form
+  formEl.querySelector('.signup-btn').textContent = '';
+  formEl.querySelector('.signup-btn').disabled = false;
+  formEl.querySelector('.signup-btn').innerHTML =
+    `<span class="cta-text-a">See what your devices are telling you</span><span class="cta-text-b">Turn your data into insights</span>`;
+  if (document.body.classList.contains('angle-b')) {
+    formEl.querySelector('.cta-text-a').style.display = 'none';
+    formEl.querySelector('.cta-text-b').style.display = 'inline';
+  }
+}
+
+function closeSurvey() {
+  document.getElementById('survey-overlay').style.display = 'none';
+  // Reset survey form
+  document.getElementById('survey-form').reset();
+  document.querySelectorAll('.survey-option').forEach(o => o.classList.remove('selected'));
+}
+
+function selectOption(el, groupName) {
+  // Toggle selection within a group
+  const group = el.closest('.survey-options');
+  const isMulti = group.dataset.multi === 'true';
+  if (!isMulti) {
+    group.querySelectorAll('.survey-option').forEach(o => o.classList.remove('selected'));
+  }
+  el.classList.toggle('selected');
+}
+
+async function submitSurvey() {
+  const submitBtn = document.getElementById('survey-submit-btn');
+
+  // Collect answers
+  const devices = [...document.querySelectorAll('[data-group="devices"] .survey-option.selected')]
+    .map(o => o.dataset.value).join(', ') || 'Not specified';
+  const household = document.querySelector('[data-group="household"] .survey-option.selected')?.dataset.value || 'Not specified';
+  const concern = document.querySelector('[data-group="concern"] .survey-option.selected')?.dataset.value || 'Not specified';
+  const beta = document.querySelector('[data-group="beta"] .survey-option.selected')?.dataset.value || 'Not specified';
+
+  // Button loading state
+  submitBtn.textContent = 'Saving…';
+  submitBtn.disabled = true;
+
+  const payload = {
+    email: pendingEmail,
+    angle: pendingAngle,
+    source: pendingSource,
+    devices,
+    household,
+    concern,
+    beta,
+    timestamp: new Date().toISOString(),
+    referrer: document.referrer || 'direct',
+    userAgent: navigator.userAgent.substring(0, 80)
+  };
+
+  // Send to Google Sheets
+  let success = false;
+  if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // required for Apps Script
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      success = true;
+    } catch (err) {
+      console.error('Sheets submission error:', err);
+    }
+  } else {
+    // Dev mode — log to console, still show success
+    console.log('📋 [DEV MODE] Signup payload (configure GOOGLE_SCRIPT_URL to enable real capture):', payload);
+    success = true;
+  }
+
+  // Always show success to user (no-cors means we can't detect failure anyway)
+  closeSurvey();
+
+  // Show the right success message
+  const msgId = document.getElementById('survey-modal').dataset.msgId;
+  if (msgId) {
+    const formWrap = document.getElementById(msgId).closest('.signup-wrap');
+    if (formWrap) {
+      formWrap.querySelector('.signup-form').style.display = 'none';
+      document.getElementById(msgId).style.display = 'block';
+    }
+  }
+
+  submitBtn.textContent = 'Join the waitlist →';
+  submitBtn.disabled = false;
 }
 
 // Scroll reveal
