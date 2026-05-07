@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PawSense — Your Cat's AI Wellness Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,700;0,900;1,300;1,700&family=Cabinet+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night:   #0D0F0A;
+  --forest:  #1C2416;
+  --moss:    #2E3D28;
+  --sage:    #7A9E6F;
+  --mist:    #B8D4A8;
+  --cream:   #F5EFE0;
+  --ember:   #D4723A;
+  --ember-l: #E8A070;
+  --gold:    #C9A84C;
+  --muted:   #8A9082;
+  --border:  rgba(122,158,111,0.15);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  background: var(--night); color: var(--cream);
+  overflow-x: hidden;
+}
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* ── NAV ───────────────────────────────── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.1rem 2.5rem;
+  background:rgba(13,15,10,0.8); backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo {
+  font-family:'Fraunces',serif; font-size:1.25rem; font-weight:900;
+  color:var(--mist); display:flex; align-items:center; gap:0.4rem;
+}
+.nav-logo span { color:var(--ember); }
+.nav-right { display:flex; align-items:center; gap:1.5rem; }
+.nav-angle-toggle {
+  display:flex; gap:0; background:rgba(255,255,255,0.05);
+  border:1px solid var(--border); border-radius:100px; overflow:hidden;
+}
+.angle-btn {
+  padding:0.4rem 0.9rem; font-size:0.72rem; font-weight:700;
+  letter-spacing:0.05em; text-transform:uppercase; border:none;
+  background:transparent; color:var(--muted); cursor:pointer; transition:all 0.2s;
+}
+.angle-btn.active { background:var(--moss); color:var(--mist); }
+.nav-cta {
+  background:var(--ember); color:white; border:none; border-radius:100px;
+  padding:0.55rem 1.3rem; font-family:'Cabinet Grotesk',sans-serif;
+  font-size:0.83rem; font-weight:700; cursor:pointer; transition:all 0.2s;
+  text-decoration:none;
+}
+.nav-cta:hover { background:var(--ember-l); transform:translateY(-1px); }
+
+/* ── ORBS ──────────────────────────────── */
+.orb {
+  position:absolute; border-radius:50%; filter:blur(90px);
+  animation:drift 14s ease-in-out infinite alternate; pointer-events:none;
+}
+.orb-1 { width:550px; height:550px; background:var(--moss); top:-80px; left:-120px; opacity:0.3; }
+.orb-2 { width:350px; height:350px; background:var(--ember); top:180px; right:-80px; opacity:0.1; animation-delay:-5s; }
+.orb-3 { width:280px; height:280px; background:var(--sage); bottom:60px; left:35%; opacity:0.18; animation-delay:-9s; }
+@keyframes drift { from{transform:translate(0,0) scale(1)} to{transform:translate(25px,18px) scale(1.06)} }
+
+/* ── HERO ──────────────────────────────── */
+.hero {
+  min-height:100vh; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:8rem 2rem 5rem; text-align:center;
+  position:relative; overflow:hidden;
+}
+.hero-eyebrow {
+  display:inline-flex; align-items:center; gap:0.5rem;
+  background:rgba(122,158,111,0.12); border:1px solid rgba(122,158,111,0.28);
+  border-radius:100px; padding:0.38rem 1rem;
+  font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--mist); margin-bottom:1.75rem; position:relative; z-index:1;
+  animation:fadeUp 0.7s ease both;
+}
+.hero-dot { width:6px; height:6px; border-radius:50%; background:var(--sage); animation:pulse 2s ease infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
+
+/* Headline switches based on active angle */
+.hero-headline {
+  font-family:'Fraunces',serif;
+  font-size:clamp(2.8rem, 7.5vw, 6.5rem);
+  font-weight:900; line-height:0.96; letter-spacing:-0.03em;
+  color:var(--cream); margin-bottom:1.5rem;
+  position:relative; z-index:1;
+  animation:fadeUp 0.7s ease 0.1s both;
+}
+.hero-headline em { font-style:italic; font-weight:300; color:var(--ember-l); }
+.hero-headline .indent { display:block; padding-left:clamp(1rem,7vw,5rem); }
+.hero-hl-b { display:none; }
+
+.hero-sub {
+  font-size:clamp(0.98rem,1.8vw,1.15rem); color:var(--muted);
+  max-width:520px; line-height:1.65; margin-bottom:0.75rem;
+  position:relative; z-index:1; animation:fadeUp 0.7s ease 0.18s both;
+}
+.hero-sub-b { display:none; }
+
+/* "Why now" sentence */
+.why-now {
+  font-size:0.88rem; color:rgba(184,212,168,0.6);
+  max-width:520px; line-height:1.55; margin-bottom:2.5rem;
+  position:relative; z-index:1;
+  animation:fadeUp 0.7s ease 0.25s both;
+  font-style:italic;
+}
+
+/* ── SIGNUP ─────────────────────────────── */
+.signup-wrap {
+  position:relative; z-index:1; width:100%; max-width:500px;
+  margin:0 auto 1.25rem; animation:fadeUp 0.7s ease 0.32s both;
+}
+.signup-form {
+  display:flex; background:rgba(255,255,255,0.05);
+  border:1px solid rgba(122,158,111,0.3); border-radius:100px;
+  padding:5px; backdrop-filter:blur(10px);
+}
+.signup-input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--cream); font-family:'Cabinet Grotesk',sans-serif;
+  font-size:0.95rem; padding:0.65rem 1.25rem;
+}
+.signup-input::placeholder { color:var(--muted); }
+.signup-btn {
+  background:var(--ember); color:white; border:none; border-radius:100px;
+  padding:0.65rem 1.4rem; font-family:'Cabinet Grotesk',sans-serif;
+  font-size:0.85rem; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap;
+}
+.signup-btn:hover { background:var(--ember-l); transform:scale(1.03); }
+/* CTA text switches with angle */
+.cta-text-b { display:none; }
+
+.signup-note {
+  font-size:0.77rem; color:var(--muted);
+  position:relative; z-index:1; animation:fadeUp 0.7s ease 0.38s both;
+}
+.signup-note strong { color:var(--sage); }
+.success-msg {
+  display:none; background:rgba(122,158,111,0.15);
+  border:1px solid rgba(122,158,111,0.4); border-radius:14px;
+  padding:1.1rem 1.5rem; font-size:0.92rem; color:var(--mist);
+  text-align:center;
+}
+
+/* ── BRANDS STRIP (moved up, below hero) ── */
+.brands-strip {
+  position:relative; z-index:1;
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  padding:1.75rem 2rem; text-align:center;
+  background:rgba(28,36,22,0.6);
+}
+.brands-label {
+  font-size:0.68rem; font-weight:700; letter-spacing:0.14em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:1.25rem; display:block;
+}
+.brands-row {
+  display:flex; align-items:center; justify-content:center;
+  gap:2.5rem; flex-wrap:wrap;
+}
+.brand-pill {
+  display:flex; align-items:center; gap:0.6rem;
+  background:rgba(255,255,255,0.04); border:1px solid var(--border);
+  border-radius:100px; padding:0.5rem 1.1rem;
+  font-size:0.85rem; font-weight:700; color:var(--cream);
+  transition:border-color 0.2s;
+}
+.brand-pill:hover { border-color:rgba(122,158,111,0.4); }
+.brand-pill-icon { font-size:1.1rem; }
+.brand-pill-sub { font-size:0.65rem; color:var(--muted); font-weight:400; display:block; line-height:1; }
+
+/* ── WHY NOW BANNER ─────────────────────── */
+.why-now-section {
+  background:var(--forest); position:relative; z-index:1;
+  border-bottom:1px solid var(--border);
+}
+.why-now-inner {
+  max-width:900px; margin:0 auto; padding:3.5rem 2rem;
+  display:grid; grid-template-columns:1fr 2fr; gap:3rem; align-items:center;
+}
+.why-now-label {
+  font-family:'Fraunces',serif; font-size:1.8rem; font-weight:700;
+  line-height:1.1; color:var(--mist);
+  font-style:italic;
+}
+.why-now-label span { display:block; font-style:normal; font-weight:300; font-size:1rem; color:var(--muted); margin-top:0.4rem; }
+.why-now-body { font-size:0.95rem; color:var(--muted); line-height:1.75; }
+.why-now-body strong { color:var(--cream); }
+.why-now-body p + p { margin-top:0.85rem; }
+
+/* ── SECTIONS ───────────────────────────── */
+section { position:relative; z-index:1; }
+.section-inner { max-width:1080px; margin:0 auto; padding:5.5rem 2rem; }
+.eyebrow {
+  font-size:0.7rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--sage); margin-bottom:0.85rem; display:block;
+}
+.section-headline {
+  font-family:'Fraunces',serif;
+  font-size:clamp(1.9rem,3.5vw,3rem); font-weight:700;
+  line-height:1.1; letter-spacing:-0.02em; color:var(--cream); margin-bottom:0.75rem;
+}
+.section-headline em { font-style:italic; color:var(--ember-l); font-weight:300; }
+.section-sub { font-size:0.95rem; color:var(--muted); max-width:500px; line-height:1.65; margin-bottom:3rem; }
+
+/* ── APP MOCKUP ─────────────────────────── */
+.mockup-section { background:var(--night); }
+.mockup-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:start; }
+
+.app-mockup {
+  background:var(--forest); border:1px solid rgba(122,158,111,0.2);
+  border-radius:24px; overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(122,158,111,0.1);
+}
+.mockup-topbar {
+  background:rgba(13,15,10,0.6); border-bottom:1px solid rgba(122,158,111,0.1);
+  padding:0.85rem 1.25rem; display:flex; align-items:center; gap:0.85rem;
+}
+.topbar-dots { display:flex; gap:0.4rem; }
+.topbar-dot { width:10px; height:10px; border-radius:50%; }
+.dot-r { background:#E86060; }
+.dot-y { background:#E8C060; }
+.dot-g { background:#60C070; }
+.topbar-title { font-size:0.78rem; color:var(--muted); font-weight:600; }
+.topbar-status {
+  margin-left:auto; display:flex; align-items:center; gap:0.4rem;
+  font-size:0.7rem; color:var(--sage);
+}
+.status-dot { width:6px; height:6px; border-radius:50%; background:var(--sage); animation:pulse 2s ease infinite; }
+
+.mockup-body { padding:1.25rem; display:flex; flex-direction:column; gap:0.85rem; }
+
+/* Cat profile bar */
+.cat-profile-bar {
+  display:flex; align-items:center; gap:0.85rem;
+  background:rgba(0,0,0,0.2); border-radius:14px; padding:0.85rem 1rem;
+}
+.cat-avatar {
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg, var(--moss), var(--sage));
+  display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+}
+.cat-name { font-weight:700; font-size:0.88rem; color:var(--cream); }
+.cat-meta { font-size:0.72rem; color:var(--muted); }
+.health-score {
+  margin-left:auto; text-align:center;
+  background:rgba(122,158,111,0.15); border:1px solid rgba(122,158,111,0.25);
+  border-radius:10px; padding:0.4rem 0.75rem;
+}
+.score-num { font-family:'Fraunces',serif; font-size:1.4rem; font-weight:900; color:var(--sage); display:block; line-height:1; }
+.score-label { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+
+/* Signal cards row */
+.signal-row { display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem; }
+.signal-card {
+  background:rgba(0,0,0,0.2); border:1px solid rgba(122,158,111,0.1);
+  border-radius:12px; padding:0.75rem;
+}
+.signal-icon { font-size:1rem; margin-bottom:0.35rem; display:block; }
+.signal-label { font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; display:block; }
+.signal-val { font-family:'Fraunces',serif; font-size:1.1rem; font-weight:700; color:var(--cream); display:block; line-height:1.2; }
+.signal-trend { font-size:0.68rem; margin-top:0.2rem; display:block; }
+.trend-ok { color:var(--sage); }
+.trend-warn { color:var(--ember-l); }
+
+/* Alert card */
+.alert-card {
+  background:rgba(212,114,58,0.1); border:1px solid rgba(212,114,58,0.28);
+  border-radius:14px; padding:1rem 1.1rem;
+}
+.alert-card-title {
+  font-size:0.8rem; font-weight:700; color:var(--ember-l);
+  display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem;
+}
+.alert-card-body { font-size:0.75rem; color:var(--muted); line-height:1.5; }
+.alert-card-action {
+  margin-top:0.65rem; display:flex; align-items:center; gap:0.5rem;
+}
+.alert-link { font-size:0.75rem; color:var(--ember-l); font-weight:700; cursor:pointer; }
+.alert-dismiss { font-size:0.72rem; color:var(--muted); cursor:pointer; }
+
+/* Weekly report card */
+.report-card {
+  background:rgba(0,0,0,0.15); border:1px solid rgba(122,158,111,0.12);
+  border-radius:14px; padding:1rem 1.1rem;
+}
+.report-card-header {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;
+}
+.report-card-title { font-size:0.8rem; font-weight:700; color:var(--cream); }
+.report-card-date { font-size:0.68rem; color:var(--muted); }
+.report-bars { display:flex; flex-direction:column; gap:0.45rem; }
+.report-bar-row { display:flex; align-items:center; gap:0.6rem; }
+.report-bar-label { font-size:0.68rem; color:var(--muted); width:55px; flex-shrink:0; }
+.report-bar-track {
+  flex:1; height:6px; background:rgba(255,255,255,0.06);
+  border-radius:100px; overflow:hidden;
+}
+.report-bar-fill { height:100%; border-radius:100px; transition:width 1s ease; }
+.fill-green { background:var(--sage); }
+.fill-amber { background:var(--ember-l); }
+.fill-mist { background:var(--mist); }
+.report-bar-val { font-size:0.68rem; color:var(--muted); width:30px; text-align:right; flex-shrink:0; }
+
+/* ── HOW IT WORKS ───────────────────────── */
+.how-section { background:var(--forest); }
+.steps-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:1px; background:rgba(122,158,111,0.08);
+  border:1px solid rgba(122,158,111,0.1); border-radius:18px; overflow:hidden;
+}
+.step { background:var(--night); padding:2.25rem 1.75rem; transition:background 0.3s; }
+.step:hover { background:var(--forest); }
+.step-num {
+  font-family:'Fraunces',serif; font-size:3rem; font-weight:900;
+  color:rgba(122,158,111,0.18); line-height:1; margin-bottom:1rem; display:block;
+}
+.step-icon { font-size:1.5rem; margin-bottom:0.65rem; display:block; }
+.step-title { font-weight:700; font-size:0.92rem; color:var(--cream); margin-bottom:0.4rem; }
+.step-desc { font-size:0.82rem; color:var(--muted); line-height:1.6; }
+.step-tag {
+  display:inline-block; margin-top:0.65rem;
+  background:rgba(212,114,58,0.12); border:1px solid rgba(212,114,58,0.25);
+  border-radius:6px; padding:0.2rem 0.55rem;
+  font-size:0.68rem; font-weight:700; color:var(--ember-l); letter-spacing:0.05em;
+}
+
+/* ── TIERS ──────────────────────────────── */
+.tiers-section { background:var(--night); }
+.tiers-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(185px,1fr)); gap:1rem;
+}
+.tier-card {
+  border:1px solid rgba(122,158,111,0.14); border-radius:16px;
+  padding:1.6rem 1.4rem; background:var(--forest);
+  transition:all 0.3s; position:relative; overflow:hidden;
+}
+.tier-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,var(--sage),transparent);
+  opacity:0; transition:opacity 0.3s;
+}
+.tier-card:hover { border-color:rgba(122,158,111,0.32); transform:translateY(-3px); }
+.tier-card:hover::before { opacity:1; }
+.tier-card.featured { border-color:var(--ember); background:rgba(212,114,58,0.06); }
+.tier-card.featured::before { background:linear-gradient(90deg,transparent,var(--ember),transparent); opacity:1; }
+.tier-num-big {
+  font-family:'Fraunces',serif; font-size:3.5rem; font-weight:900;
+  color:rgba(122,158,111,0.15); line-height:1; margin-bottom:0.85rem; display:block;
+}
+.tier-card.featured .tier-num-big { color:rgba(212,114,58,0.18); }
+.tier-title { font-weight:700; color:var(--cream); font-size:0.85rem; margin-bottom:0.2rem; }
+.tier-dev-label { font-size:0.72rem; color:var(--muted); margin-bottom:0.9rem; }
+.tier-features { list-style:none; display:flex; flex-direction:column; gap:0.38rem; }
+.tier-features li {
+  font-size:0.78rem; color:var(--muted);
+  display:flex; align-items:flex-start; gap:0.4rem;
+}
+.tier-features li::before { content:'→'; color:var(--sage); flex-shrink:0; font-size:0.72rem; margin-top:0.1rem; }
+.tier-upsell { margin-top:0.9rem; font-size:0.73rem; color:var(--ember-l); font-style:italic; line-height:1.4; }
+
+/* ── DEVICES ────────────────────────────── */
+.devices-section { background:var(--forest); }
+.devices-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+.device-brand {
+  border:1px solid rgba(122,158,111,0.14); border-radius:18px; overflow:hidden;
+  background:var(--night); transition:all 0.3s;
+}
+.device-brand:hover { border-color:rgba(122,158,111,0.35); transform:translateY(-3px); }
+.brand-header {
+  padding:1.5rem 1.5rem 1.1rem; border-bottom:1px solid rgba(122,158,111,0.08);
+  display:flex; align-items:center; gap:0.85rem;
+}
+.brand-icon {
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; font-size:1.25rem;
+}
+.brand-icon.petkit { background:rgba(52,120,220,0.12); }
+.brand-icon.whisker { background:rgba(201,168,76,0.12); }
+.brand-icon.petlibro { background:rgba(220,52,52,0.12); }
+.brand-name { font-weight:800; font-size:0.95rem; color:var(--cream); }
+.brand-tagline { font-size:0.72rem; color:var(--muted); }
+.brand-badge {
+  margin-left:auto; font-size:0.62rem; font-weight:700; letter-spacing:0.07em;
+  text-transform:uppercase; padding:0.18rem 0.55rem; border-radius:100px; white-space:nowrap; flex-shrink:0;
+}
+.badge-green { background:rgba(122,158,111,0.18); color:var(--mist); }
+.badge-gold { background:rgba(201,168,76,0.15); color:var(--gold); }
+.badge-ember { background:rgba(212,114,58,0.15); color:var(--ember-l); }
+.brand-devices { padding:1.1rem 1.5rem; }
+.device-row {
+  display:flex; align-items:flex-start; gap:0.65rem;
+  padding:0.55rem 0; border-bottom:1px solid rgba(122,158,111,0.05);
+}
+.device-row:last-child { border-bottom:none; }
+.device-emoji { font-size:0.95rem; flex-shrink:0; margin-top:0.1rem; }
+.device-name { font-size:0.8rem; font-weight:600; color:var(--cream); }
+.device-sub { font-size:0.7rem; color:var(--muted); }
+.device-tag {
+  display:inline-block; font-size:0.6rem; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase;
+  padding:0.1rem 0.42rem; border-radius:4px; margin-top:0.2rem;
+}
+.tag-green { background:rgba(122,158,111,0.18); color:var(--sage); }
+.tag-gold { background:rgba(201,168,76,0.15); color:var(--gold); }
+.tag-ember { background:rgba(212,114,58,0.15); color:var(--ember-l); }
+
+.devices-note {
+  margin-top:2rem; padding:1.4rem 1.75rem;
+  background:rgba(122,158,111,0.05); border:1px solid rgba(122,158,111,0.14);
+  border-radius:14px; display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;
+}
+.devices-note-icon { font-size:1.75rem; flex-shrink:0; }
+.devices-note-body { font-size:0.85rem; color:var(--muted); line-height:1.6; }
+.devices-note-body strong { color:var(--mist); }
+
+/* ── QUOTES ─────────────────────────────── */
+.quotes-section { background:var(--night); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+.quotes-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1.1rem; }
+.quote-card {
+  background:var(--forest); border:1px solid rgba(122,158,111,0.12);
+  border-radius:16px; padding:1.5rem; transition:border-color 0.3s;
+}
+.quote-card:hover { border-color:rgba(122,158,111,0.28); }
+.quote-text {
+  font-family:'Fraunces',serif; font-style:italic;
+  font-size:0.95rem; color:var(--cream); line-height:1.65; margin-bottom:1.1rem;
+}
+.quote-footer { display:flex; align-items:center; gap:0.7rem; }
+.quote-avatar {
+  width:34px; height:34px; border-radius:50%; background:var(--moss);
+  display:flex; align-items:center; justify-content:center; font-size:0.9rem;
+}
+.quote-name { font-weight:700; font-size:0.8rem; color:var(--cream); }
+.quote-source { font-size:0.7rem; color:var(--muted); }
+
+/* ── FINAL CTA ──────────────────────────── */
+.cta-section { background:var(--forest); }
+.cta-inner {
+  max-width:660px; margin:0 auto;
+  padding:7rem 2rem; text-align:center;
+}
+.cta-headline {
+  font-family:'Fraunces',serif;
+  font-size:clamp(2.2rem,4.5vw,3.8rem); font-weight:900;
+  line-height:1.05; letter-spacing:-0.03em;
+  color:var(--cream); margin-bottom:1.1rem;
+}
+.cta-headline em { font-style:italic; font-weight:300; color:var(--ember-l); }
+.cta-sub { font-size:0.97rem; color:var(--muted); margin-bottom:2.25rem; line-height:1.65; }
+
+/* ── FOOTER ─────────────────────────────── */
+footer {
+  border-top:1px solid var(--border); padding:2rem 2.5rem;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  flex-wrap:wrap; gap:1rem;
+}
+.footer-logo { font-family:'Fraunces',serif; font-weight:900; font-size:1.05rem; color:var(--mist); }
+.footer-disclaimer { font-size:0.72rem; color:var(--muted); max-width:580px; line-height:1.55; }
+
+/* ── ANIMATIONS ─────────────────────────── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+.reveal { opacity:0; transform:translateY(28px); transition:opacity 0.65s ease, transform 0.65s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ── A/B ANGLE SWITCH ───────────────────── */
+body.angle-b .hero-hl-a { display:none; }
+body.angle-b .hero-hl-b { display:block; }
+body.angle-b .hero-sub-a { display:none; }
+body.angle-b .hero-sub-b { display:block; }
+body.angle-b .cta-text-a { display:none; }
+body.angle-b .cta-text-b { display:inline; }
+
+/* ── RESPONSIVE ─────────────────────────── */
+@media(max-width:920px) {
+  nav { padding:1rem 1.5rem; }
+  .nav-angle-toggle { display:none; }
+  .devices-grid { grid-template-columns:1fr; }
+  .mockup-grid { grid-template-columns:1fr; }
+  .mockup-text { order:-1; }
+  .why-now-inner { grid-template-columns:1fr; gap:1.5rem; }
+}
+@media(max-width:600px) {
+  .signup-form { flex-direction:column; border-radius:16px; }
+  .signup-btn { border-radius:12px; }
+  .tiers-grid { grid-template-columns:1fr 1fr; }
+  footer { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">🐾 Paw<span>Sense</span></div>
+  <div class="nav-right">
+    <!-- A/B positioning toggle — for your own testing, not user-facing in production -->
+    <div class="nav-angle-toggle" title="Test positioning angle">
+      <button class="angle-btn active" onclick="setAngle('a',this)">Wellness angle</button>
+      <button class="angle-btn" onclick="setAngle('b',this)">Device angle</button>
+    </div>
+    <a class="nav-cta" href="#final-cta">Join Waitlist</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="hero-eyebrow"><span class="hero-dot"></span>Early access · Now open</div>
+
+  <!-- Angle A: Wellness / health anxiety -->
+  <h1 class="hero-headline hero-hl-a">
+    Cats hide<br>
+    <span class="indent">when something's <em>wrong.</em></span>
+  </h1>
+  <!-- Angle B: Device optimization / rational -->
+  <h1 class="hero-headline hero-hl-b">
+    Your PETKIT data<br>
+    <span class="indent">is <em>wasted.</em></span>
+  </h1>
+
+  <!-- Angle A sub -->
+  <p class="hero-sub hero-sub-a">
+    PawSense notices meaningful changes in your cat's daily patterns — litter habits, appetite, hydration — before they're obvious. Helpful insights, plain language, always owner-approved.
+  </p>
+  <!-- Angle B sub -->
+  <p class="hero-sub hero-sub-b">
+    Your smart devices generate a stream of behavioral data that just sits there. PawSense turns it into weekly wellness summaries and early pattern alerts — no dashboards, no data entry.
+  </p>
+
+  <p class="why-now">
+    Smart litter boxes, feeders, and fountains now generate enough behavioral data that AI can spot meaningful pattern changes early — this wasn't possible three years ago.
+  </p>
+
+  <div class="signup-wrap" id="signup-top">
+    <div class="signup-form">
+      <input class="signup-input" type="email" placeholder="your@email.com" id="email-top"/>
+      <button class="signup-btn" onclick="handleSignup('email-top','msg-top')">
+        <span class="cta-text-a">See what your devices are telling you</span>
+        <span class="cta-text-b">Turn your data into insights</span>
+      </button>
+    </div>
+    <div class="success-msg" id="msg-top">🎉 You're on the list! We'll be in touch when PawSense launches.</div>
+  </div>
+  <p class="signup-note">No credit card. No spam. <strong>Helpful, never autonomous.</strong></p>
+</section>
+
+<!-- BRANDS STRIP — moved high, immediate credibility anchor -->
+<div class="brands-strip reveal">
+  <span class="brands-label">Works with devices you already own</span>
+  <div class="brands-row">
+    <div class="brand-pill">
+      <span class="brand-pill-icon">🔵</span>
+      <div>
+        <strong>PETKIT</strong>
+        <span class="brand-pill-sub">Purobot · Fresh Element · Eversweet</span>
+      </div>
+    </div>
+    <div class="brand-pill">
+      <span class="brand-pill-icon">🟡</span>
+      <div>
+        <strong>Whisker</strong>
+        <span class="brand-pill-sub">Litter-Robot 5 · Feeder-Robot</span>
+      </div>
+    </div>
+    <div class="brand-pill">
+      <span class="brand-pill-icon">🔴</span>
+      <div>
+        <strong>Petlibro</strong>
+        <span class="brand-pill-sub">Luma · Dockstream · Scout Camera</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHY NOW -->
+<div class="why-now-section reveal">
+  <div class="why-now-inner">
+    <div class="why-now-label">
+      Why now?
+      <span>The timing is no accident.</span>
+    </div>
+    <div class="why-now-body">
+      <p>Smart cat devices have reached a tipping point. <strong>Litter boxes now weigh your cat on every visit. Feeders track every meal. Fountains log daily water intake.</strong> The behavioral data was never this rich before.</p>
+      <p>But the data has stayed trapped inside individual apps — siloed, raw, and uninterpreted. <strong>No single product connects the signals and tells you what they mean.</strong></p>
+      <p>PawSense is that layer. We read your existing devices, learn your cat's personal baseline, and surface the pattern changes that matter — <strong>before a vet visit becomes urgent.</strong></p>
+    </div>
+  </div>
+</div>
+
+<!-- APP MOCKUP + EXPLANATION -->
+<section class="mockup-section">
+  <div class="section-inner">
+    <div class="mockup-grid">
+
+      <!-- Realistic HTML/CSS app mockup -->
+      <div class="app-mockup reveal">
+        <div class="mockup-topbar">
+          <div class="topbar-dots">
+            <div class="topbar-dot dot-r"></div>
+            <div class="topbar-dot dot-y"></div>
+            <div class="topbar-dot dot-g"></div>
+          </div>
+          <span class="topbar-title">PawSense — Luna's Dashboard</span>
+          <div class="topbar-status"><div class="status-dot"></div> Live</div>
+        </div>
+        <div class="mockup-body">
+
+          <!-- Cat profile -->
+          <div class="cat-profile-bar">
+            <div class="cat-avatar">🐱</div>
+            <div>
+              <div class="cat-name">Luna</div>
+              <div class="cat-meta">5 yr · Domestic Shorthair · Berlin</div>
+            </div>
+            <div class="health-score">
+              <span class="score-num">87</span>
+              <span class="score-label">Wellness</span>
+            </div>
+          </div>
+
+          <!-- Signal cards -->
+          <div class="signal-row">
+            <div class="signal-card">
+              <span class="signal-icon">🚽</span>
+              <span class="signal-label">Litter visits</span>
+              <span class="signal-val">9×</span>
+              <span class="signal-trend trend-warn">↑ vs usual 3×</span>
+            </div>
+            <div class="signal-card">
+              <span class="signal-icon">🍽️</span>
+              <span class="signal-label">Meals today</span>
+              <span class="signal-val">2/3</span>
+              <span class="signal-trend trend-ok">✓ Normal</span>
+            </div>
+            <div class="signal-card">
+              <span class="signal-icon">⛲</span>
+              <span class="signal-label">Water intake</span>
+              <span class="signal-val">48ml</span>
+              <span class="signal-trend trend-ok">✓ On track</span>
+            </div>
+          </div>
+
+          <!-- Alert -->
+          <div class="alert-card">
+            <div class="alert-card-title">⚠️ Unusual litter pattern today</div>
+            <div class="alert-card-body">
+              Luna's litter visits are notably higher than her usual pattern. Each visit has been shorter than normal. Worth keeping an eye on — if this continues, your vet would want to know.
+            </div>
+            <div class="alert-card-action">
+              <span class="alert-link">See full insight →</span>
+              <span class="alert-dismiss">Dismiss</span>
+            </div>
+          </div>
+
+          <!-- Weekly report mini -->
+          <div class="report-card">
+            <div class="report-card-header">
+              <div class="report-card-title">📊 This week's wellness trends</div>
+              <div class="report-card-date">May 1–7, 2026</div>
+            </div>
+            <div class="report-bars">
+              <div class="report-bar-row">
+                <span class="report-bar-label">Litter</span>
+                <div class="report-bar-track"><div class="report-bar-fill fill-amber" style="width:72%"></div></div>
+                <span class="report-bar-val">↑ 72%</span>
+              </div>
+              <div class="report-bar-row">
+                <span class="report-bar-label">Appetite</span>
+                <div class="report-bar-track"><div class="report-bar-fill fill-green" style="width:91%"></div></div>
+                <span class="report-bar-val">91%</span>
+              </div>
+              <div class="report-bar-row">
+                <span class="report-bar-label">Hydration</span>
+                <div class="report-bar-track"><div class="report-bar-fill fill-mist" style="width:85%"></div></div>
+                <span class="report-bar-val">85%</span>
+              </div>
+              <div class="report-bar-row">
+                <span class="report-bar-label">Weight</span>
+                <div class="report-bar-track"><div class="report-bar-fill fill-green" style="width:94%"></div></div>
+                <span class="report-bar-val">Stable</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Explanation text -->
+      <div class="mockup-text reveal">
+        <span class="eyebrow">What you actually see</span>
+        <h2 class="section-headline">Not a dashboard.<br>A <em>co-pilot.</em></h2>
+        <p class="section-sub">PawSense reads your cat's devices and surfaces what matters — no spreadsheets, no guesswork. One clear wellness score, real-time pattern flags, and a weekly summary you'll actually read.</p>
+
+        <div style="display:flex;flex-direction:column;gap:1.1rem;margin-top:0.5rem;">
+          <div style="display:flex;gap:0.9rem;align-items:flex-start;">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(122,158,111,0.1);border:1px solid rgba(122,158,111,0.2);display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;">📊</div>
+            <div>
+              <div style="font-weight:700;font-size:0.88rem;color:var(--cream);margin-bottom:0.2rem;">Personal baseline — not generic averages</div>
+              <div style="font-size:0.8rem;color:var(--muted);line-height:1.55;">PawSense learns what's normal for your specific cat over 14 days. Alerts are based on her patterns, not population data.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.9rem;align-items:flex-start;">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(122,158,111,0.1);border:1px solid rgba(122,158,111,0.2);display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;">💬</div>
+            <div>
+              <div style="font-weight:700;font-size:0.88rem;color:var(--cream);margin-bottom:0.2rem;">Weekly reports in plain language</div>
+              <div style="font-size:0.8rem;color:var(--muted);line-height:1.55;">Every Monday, a clear narrative of your cat's week. Trends, observations, and suggested next steps — written for owners, not vets.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.9rem;align-items:flex-start;">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(122,158,111,0.1);border:1px solid rgba(122,158,111,0.2);display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;">✅</div>
+            <div>
+              <div style="font-weight:700;font-size:0.88rem;color:var(--cream);margin-bottom:0.2rem;">Helpful, never autonomous</div>
+              <div style="font-size:0.8rem;color:var(--muted);line-height:1.55;">When PawSense has a suggestion, it asks first. You approve every action. The agent proposes — you decide. Always.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.9rem;align-items:flex-start;">
+            <div style="width:34px;height:34px;border-radius:10px;background:rgba(122,158,111,0.1);border:1px solid rgba(122,158,111,0.2);display:flex;align-items:center;justify-content:center;font-size:0.95rem;flex-shrink:0;">📄</div>
+            <div>
+              <div style="font-weight:700;font-size:0.88rem;color:var(--cream);margin-bottom:0.2rem;">Vet-ready exports in one tap</div>
+              <div style="font-size:0.8rem;color:var(--muted);line-height:1.55;">30-day wellness summary PDF, formatted for your vet. Turn every appointment into a productive, informed conversation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="section-inner">
+    <span class="eyebrow reveal">How it works</span>
+    <h2 class="section-headline reveal">Simple. <em>Passive.</em> Powerful.</h2>
+    <p class="section-sub reveal">Connect your devices once. PawSense does the rest — quietly watching, learning, and alerting you only when something is worth your attention.</p>
+
+    <div class="steps-grid reveal">
+      <div class="step">
+        <span class="step-num">01</span>
+        <span class="step-icon">🔌</span>
+        <div class="step-title">Connect your devices</div>
+        <div class="step-desc">Link your PETKIT, Whisker, or Petlibro devices in a few minutes. Works with what you already have — even just one device unlocks real insights.</div>
+        <span class="step-tag">One-time setup</span>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <span class="step-icon">📊</span>
+        <div class="step-title">Agent learns your cat</div>
+        <div class="step-desc">Over 14 days, PawSense silently builds your cat's personal behavioral baseline — their normal litter rhythm, meal patterns, and hydration habits.</div>
+        <span class="step-tag">Fully automatic</span>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <span class="step-icon">🔍</span>
+        <div class="step-title">Unusual patterns flagged</div>
+        <div class="step-desc">When something deviates from your cat's baseline — more litter visits than usual, skipped meals, hydration changes — you get a clear, calm alert.</div>
+        <span class="step-tag">Spots what's easy to miss</span>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <span class="step-icon">💬</span>
+        <div class="step-title">Weekly wellness summary</div>
+        <div class="step-desc">Every Monday, a plain-language report of your cat's week. Trends, observations, and next steps — written for owners, not data scientists.</div>
+        <span class="step-tag">Every Monday morning</span>
+      </div>
+      <div class="step">
+        <span class="step-num">05</span>
+        <span class="step-icon">📄</span>
+        <div class="step-title">Share with your vet</div>
+        <div class="step-desc">Export a 30-day wellness summary your vet will actually find useful. Every appointment becomes more informed, more productive, less stressful.</div>
+        <span class="step-tag">One tap export</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MONITORING TIERS -->
+<section class="tiers-section">
+  <div class="section-inner">
+    <span class="eyebrow reveal">Monitoring tiers</span>
+    <h2 class="section-headline reveal">Start with one device.<br><em>Grow from there.</em></h2>
+    <p class="section-sub reveal">Every tier is genuinely useful. Each new device adds a new signal layer — making the agent's picture of your cat more complete.</p>
+
+    <div class="tiers-grid reveal">
+      <div class="tier-card">
+        <span class="tier-num-big">0</span>
+        <div class="tier-title">Manual only</div>
+        <div class="tier-dev-label">No smart devices needed</div>
+        <ul class="tier-features">
+          <li>60-sec daily owner check-in</li>
+          <li>Monthly wellness narrative</li>
+          <li>Breed-specific pattern alerts</li>
+        </ul>
+        <div class="tier-upsell">Add any smart device to unlock automated signals →</div>
+      </div>
+      <div class="tier-card">
+        <span class="tier-num-big">1</span>
+        <div class="tier-title">Litter box</div>
+        <div class="tier-dev-label">1 device · Biggest single signal</div>
+        <ul class="tier-features">
+          <li>Litter visit frequency & duration</li>
+          <li>Body weight trend tracking</li>
+          <li>Unusual bathroom pattern alerts</li>
+        </ul>
+        <div class="tier-upsell">Add feeder to track appetite patterns →</div>
+      </div>
+      <div class="tier-card">
+        <span class="tier-num-big">2</span>
+        <div class="tier-title">Litter + feeder</div>
+        <div class="tier-dev-label">2 devices · Cross-signal confidence</div>
+        <ul class="tier-features">
+          <li>Appetite change detection</li>
+          <li>Weight vs. food cross-signal</li>
+          <li>Meal timing & speed tracking</li>
+        </ul>
+        <div class="tier-upsell">Add fountain for hydration monitoring →</div>
+      </div>
+      <div class="tier-card">
+        <span class="tier-num-big">3</span>
+        <div class="tier-title">Full suite</div>
+        <div class="tier-dev-label">Litter + feeder + fountain</div>
+        <ul class="tier-features">
+          <li>Hydration pattern tracking</li>
+          <li>Drinking frequency & timing</li>
+          <li>Strongest multi-signal picture</li>
+        </ul>
+        <div class="tier-upsell">Add camera for behavioral context →</div>
+      </div>
+      <div class="tier-card featured">
+        <span class="tier-num-big">4</span>
+        <div class="tier-title">Full suite + camera</div>
+        <div class="tier-dev-label">Most complete wellness view</div>
+        <ul class="tier-features">
+          <li>Visual behavioral context</li>
+          <li>Activity & rest pattern tracking</li>
+          <li>Richer, higher-confidence reports</li>
+        </ul>
+        <div class="tier-upsell" style="color:var(--sage);">✓ Most complete wellness picture</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPATIBLE DEVICES -->
+<section class="devices-section">
+  <div class="section-inner">
+    <span class="eyebrow reveal">Compatible ecosystems</span>
+    <h2 class="section-headline reveal">Built for the <em>best</em> smart cat devices.</h2>
+    <p class="section-sub reveal">Three leading brands chosen for their coverage across litter, feeding, hydration, and camera — so you can use what you already own.</p>
+
+    <div class="devices-grid reveal">
+      <div class="device-brand">
+        <div class="brand-header">
+          <div class="brand-icon petkit">🔵</div>
+          <div><div class="brand-name">PETKIT</div><div class="brand-tagline">6M+ pet parents worldwide</div></div>
+          <span class="brand-badge badge-green">Primary</span>
+        </div>
+        <div class="brand-devices">
+          <div class="device-row"><span class="device-emoji">🚽</span><div><div class="device-name">Purobot Max Pro 2</div><div class="device-sub">AI camera, weight sensor, multi-cat recognition</div><span class="device-tag tag-green">Litter</span></div></div>
+          <div class="device-row"><span class="device-emoji">🍽️</span><div><div class="device-name">Fresh Element Infinity</div><div class="device-sub">Meal tracking, portion AI, facial recognition</div><span class="device-tag tag-green">Feeder</span></div></div>
+          <div class="device-row"><span class="device-emoji">⛲</span><div><div class="device-name">Eversweet Fountain</div><div class="device-sub">Hydration monitoring, low-water alerts</div><span class="device-tag tag-green">Fountain</span></div></div>
+        </div>
+      </div>
+
+      <div class="device-brand">
+        <div class="brand-header">
+          <div class="brand-icon whisker">🟡</div>
+          <div><div class="brand-name">Whisker</div><div class="brand-tagline">2M+ Litter-Robots sold globally</div></div>
+          <span class="brand-badge badge-gold">Market leader</span>
+        </div>
+        <div class="brand-devices">
+          <div class="device-row"><span class="device-emoji">🚽</span><div><div class="device-name">Litter-Robot 5 Pro</div><div class="device-sub">Dual AI cameras, WasteID, multi-cat tracking</div><span class="device-tag tag-gold">Flagship</span></div></div>
+          <div class="device-row"><span class="device-emoji">🚽</span><div><div class="device-name">Litter-Robot 5 / EVO</div><div class="device-sub">Full app ecosystem, single & multi-cat</div><span class="device-tag tag-green">Litter</span></div></div>
+          <div class="device-row"><span class="device-emoji">🍽️</span><div><div class="device-name">Feeder-Robot</div><div class="device-sub">Smart scheduling, portion insights, same app</div><span class="device-tag tag-green">Feeder</span></div></div>
+        </div>
+      </div>
+
+      <div class="device-brand">
+        <div class="brand-header">
+          <div class="brand-icon petlibro">🔴</div>
+          <div><div class="brand-name">Petlibro</div><div class="brand-tagline">North America's #1 smart feeder brand</div></div>
+          <span class="brand-badge badge-ember">Design-first</span>
+        </div>
+        <div class="brand-devices">
+          <div class="device-row"><span class="device-emoji">🚽</span><div><div class="device-name">Luma Smart Litter Box</div><div class="device-sub">AI waste analysis, up to 10 cat recognition</div><span class="device-tag tag-green">Litter</span></div></div>
+          <div class="device-row"><span class="device-emoji">🍽️</span><div><div class="device-name">Automatic Feeders</div><div class="device-sub">Meal scheduling, portion tracking, wet food</div><span class="device-tag tag-green">Feeder</span></div></div>
+          <div class="device-row"><span class="device-emoji">⛲</span><div><div class="device-name">Dockstream 2 Fountain</div><div class="device-sub">Cordless, filtered, hydration monitoring</div><span class="device-tag tag-green">Fountain</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="devices-note reveal">
+      <div class="devices-note-icon">🧩</div>
+      <div class="devices-note-body"><strong>Mix and match — or start with one.</strong> PawSense works with any combination across these brands. Already have a Litter-Robot? That's enough to start. Own a full PETKIT setup? The agent runs at full intelligence. No brand loyalty required.</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTES — honest, interview-sourced framing -->
+<section class="quotes-section">
+  <div class="section-inner">
+    <span class="eyebrow reveal" style="text-align:center;display:block;">From early user interviews</span>
+    <h2 class="section-headline reveal" style="text-align:center;">What cat owners<br><em>told us</em> they need.</h2>
+
+    <div class="quotes-grid reveal">
+      <div class="quote-card">
+        <div class="quote-text">"My cat was unwell for weeks before I noticed. By then it was expensive and stressful. I just want something that notices the change before I do."</div>
+        <div class="quote-footer">
+          <div class="quote-avatar">🧑</div>
+          <div><div class="quote-name">Cat owner, Berlin</div><div class="quote-source">Litter-Robot owner · User interview, April 2026</div></div>
+        </div>
+      </div>
+      <div class="quote-card">
+        <div class="quote-text">"I have three PETKIT devices and the data just sits in the app. I check it sometimes, but I don't really know what I'm looking for."</div>
+        <div class="quote-footer">
+          <div class="quote-avatar">👩</div>
+          <div><div class="quote-name">Cat owner, Amsterdam</div><div class="quote-source">PETKIT user · User interview, April 2026</div></div>
+        </div>
+      </div>
+      <div class="quote-card">
+        <div class="quote-text">"I'd be fine with AI making suggestions — but I want to approve anything before it changes a setting. I need to stay in control."</div>
+        <div class="quote-footer">
+          <div class="quote-avatar">🧔</div>
+          <div><div class="quote-name">Cat owner, Munich</div><div class="quote-source">Petlibro user · User interview, April 2026</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-section" id="final-cta">
+  <div class="cta-inner">
+    <h2 class="cta-headline reveal">
+      Your cat's devices<br>are already<br><em>watching.</em>
+    </h2>
+    <p class="cta-sub reveal">Join the waitlist. Be among the first to use PawSense when we launch. No credit card. No spam. Just early access to something genuinely useful.</p>
+
+    <div class="signup-wrap reveal" style="max-width:460px;">
+      <div class="signup-form">
+        <input class="signup-input" type="email" placeholder="your@email.com" id="email-bottom"/>
+        <button class="signup-btn" onclick="handleSignup('email-bottom','msg-bottom')">
+          <span class="cta-text-a">See what your devices are telling you</span>
+          <span class="cta-text-b">Turn your data into insights</span>
+        </button>
+      </div>
+      <div class="success-msg" id="msg-bottom">🎉 You're on the list! We'll reach out as soon as PawSense is ready.</div>
+    </div>
+
+    <p class="signup-note reveal" style="margin-top:1rem;">Building with <strong>PETKIT · Whisker · Petlibro</strong></p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">🐾 PawSense</div>
+  <div class="footer-disclaimer">
+    © 2026 PawSense · Berlin, Germany<br>
+    PawSense provides wellness observations and behavioral trend insights only. It is not a veterinary service and does not diagnose, treat, or replace professional veterinary care. Always consult a qualified veterinarian for any medical concerns about your pet.
+  </div>
+</footer>
+
+<script>
+// A/B angle switcher
+function setAngle(angle, btn) {
+  document.body.classList.toggle('angle-b', angle === 'b');
+  document.querySelectorAll('.angle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Log for your own tracking
+  console.log('Angle switched to:', angle);
+}
+
+// Signup
+function handleSignup(inputId, msgId) {
+  const input = document.getElementById(inputId);
+  const msg = document.getElementById(msgId);
+  const email = input.value.trim();
+
+  if (!email || !email.includes('@')) {
+    input.placeholder = 'Please enter a valid email ↑';
+    input.style.color = 'var(--ember-l)';
+    setTimeout(() => {
+      input.placeholder = 'your@email.com';
+      input.style.color = '';
+    }, 2200);
+    return;
+  }
+
+  // Store for Wizard MVP validation + track angle
+  const angle = document.body.classList.contains('angle-b') ? 'B' : 'A';
+  const signups = JSON.parse(localStorage.getItem('pawsense_signups') || '[]');
+  signups.push({ email, angle, timestamp: new Date().toISOString(), source: inputId });
+  localStorage.setItem('pawsense_signups', JSON.stringify(signups));
+  console.log(`PawSense signup [Angle ${angle}]:`, email);
+
+  input.closest('.signup-form').style.display = 'none';
+  msg.style.display = 'block';
+}
+
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 55);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Nav shadow on scroll
+window.addEventListener('scroll', () => {
+  document.querySelector('nav').style.borderBottomColor =
+    window.scrollY > 50 ? 'rgba(122,158,111,0.28)' : 'rgba(122,158,111,0.15)';
+});
+</script>
+</body>
+</html>
