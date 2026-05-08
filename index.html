@@ -1090,7 +1090,7 @@ async function submitSurvey() {
 
   // Send to Google Sheets
   let success = false;
-  if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+  if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyQt_spjrERlIzdkBpQfKFHP7i--n6cxnBT8RAAur2BO8yLXOS9Vy636-MB0olCBONR4w/exec') {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
