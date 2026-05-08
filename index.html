@@ -1142,5 +1142,108 @@ window.addEventListener('scroll', () => {
     window.scrollY > 50 ? 'rgba(122,158,111,0.28)' : 'rgba(122,158,111,0.15)';
 });
 </script>
+
+<!-- ── SURVEY MODAL ─────────────────────────────────────────── -->
+<div id="survey-overlay" style="display:none; position:fixed; inset:0; z-index:200; align-items:center; justify-content:center; padding:1rem; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px);">
+  <div id="survey-modal" style="background:#1C2416; border:1px solid rgba(122,158,111,0.25); border-radius:20px; width:100%; max-width:520px; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.5);">
+
+    <!-- Modal header -->
+    <div style="padding:1.5rem 1.75rem 1rem; border-bottom:1px solid rgba(122,158,111,0.12); display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-size:0.68rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#7A9E6F; margin-bottom:0.3rem;">Almost done 🐾</div>
+        <div style="font-family:'Fraunces',serif; font-size:1.2rem; font-weight:700; color:#F5EFE0; line-height:1.2;">Help us build the right product for you</div>
+      </div>
+      <button onclick="closeSurvey()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(122,158,111,0.15); border-radius:50%; width:32px; height:32px; color:#8A9082; font-size:1rem; cursor:pointer; flex-shrink:0; line-height:1; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+
+    <!-- Survey questions -->
+    <form id="survey-form" style="padding:1.5rem 1.75rem; display:flex; flex-direction:column; gap:1.4rem;" onsubmit="return false;">
+
+      <!-- Q1: Devices owned (multi-select) -->
+      <div>
+        <div style="font-size:0.82rem; font-weight:700; color:#F5EFE0; margin-bottom:0.6rem;">Which smart cat devices do you own? <span style="color:#8A9082; font-weight:400;">(select all that apply)</span></div>
+        <div class="survey-options" data-group="devices" data-multi="true" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <div class="survey-option" data-group="devices" data-value="PETKIT litter box" onclick="selectOption(this,'devices')">🚽 PETKIT litter box</div>
+          <div class="survey-option" data-group="devices" data-value="Litter-Robot" onclick="selectOption(this,'devices')">🟡 Litter-Robot</div>
+          <div class="survey-option" data-group="devices" data-value="Petlibro litter box" onclick="selectOption(this,'devices')">🔴 Petlibro litter box</div>
+          <div class="survey-option" data-group="devices" data-value="Smart feeder" onclick="selectOption(this,'devices')">🍽️ Smart feeder</div>
+          <div class="survey-option" data-group="devices" data-value="Smart fountain" onclick="selectOption(this,'devices')">⛲ Smart fountain</div>
+          <div class="survey-option" data-group="devices" data-value="Pet camera" onclick="selectOption(this,'devices')">📷 Pet camera</div>
+          <div class="survey-option" data-group="devices" data-value="None yet" onclick="selectOption(this,'devices')">🛒 None yet</div>
+        </div>
+      </div>
+
+      <!-- Q2: Household -->
+      <div>
+        <div style="font-size:0.82rem; font-weight:700; color:#F5EFE0; margin-bottom:0.6rem;">How many cats do you have?</div>
+        <div class="survey-options" data-group="household" data-multi="false" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <div class="survey-option" data-group="household" data-value="1 cat" onclick="selectOption(this,'household')">1 cat</div>
+          <div class="survey-option" data-group="household" data-value="2 cats" onclick="selectOption(this,'household')">2 cats</div>
+          <div class="survey-option" data-group="household" data-value="3+ cats" onclick="selectOption(this,'household')">3+ cats</div>
+        </div>
+      </div>
+
+      <!-- Q3: Biggest concern -->
+      <div>
+        <div style="font-size:0.82rem; font-weight:700; color:#F5EFE0; margin-bottom:0.6rem;">What matters most to you?</div>
+        <div class="survey-options" data-group="concern" data-multi="false" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <div class="survey-option" data-group="concern" data-value="Spotting illness early" onclick="selectOption(this,'concern')">🔍 Spotting illness early</div>
+          <div class="survey-option" data-group="concern" data-value="Making sense of device data" onclick="selectOption(this,'concern')">📊 Making sense of device data</div>
+          <div class="survey-option" data-group="concern" data-value="Vet visit preparation" onclick="selectOption(this,'concern')">🏥 Vet visit preparation</div>
+          <div class="survey-option" data-group="concern" data-value="Peace of mind" onclick="selectOption(this,'concern')">😌 Peace of mind</div>
+        </div>
+      </div>
+
+      <!-- Q4: Beta interest -->
+      <div>
+        <div style="font-size:0.82rem; font-weight:700; color:#F5EFE0; margin-bottom:0.6rem;">Would you join a hands-on beta and share feedback?</div>
+        <div class="survey-options" data-group="beta" data-multi="false" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <div class="survey-option" data-group="beta" data-value="Yes, immediately" onclick="selectOption(this,'beta')">Yes, sign me up</div>
+          <div class="survey-option" data-group="beta" data-value="Maybe, tell me more" onclick="selectOption(this,'beta')">Maybe, tell me more</div>
+          <div class="survey-option" data-group="beta" data-value="Just the waitlist" onclick="selectOption(this,'beta')">Just the waitlist</div>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- Modal footer -->
+    <div style="padding:1rem 1.75rem 1.5rem; border-top:1px solid rgba(122,158,111,0.1); display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+      <div style="font-size:0.75rem; color:#8A9082; line-height:1.4;">All questions optional — skip any you prefer.<br>We'll never share your data.</div>
+      <button id="survey-submit-btn" onclick="submitSurvey()" style="background:#D4723A; color:white; border:none; border-radius:100px; padding:0.7rem 1.5rem; font-family:'Cabinet Grotesk',sans-serif; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap;">
+        Join the waitlist →
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+.survey-option {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(122,158,111,0.18);
+  border-radius: 100px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #8A9082;
+  cursor: pointer;
+  transition: all 0.18s;
+  user-select: none;
+}
+.survey-option:hover {
+  border-color: rgba(122,158,111,0.4);
+  color: #B8D4A8;
+}
+.survey-option.selected {
+  background: rgba(122,158,111,0.18);
+  border-color: rgba(122,158,111,0.55);
+  color: #B8D4A8;
+  font-weight: 700;
+}
+#survey-submit-btn:hover {
+  background: #E8A070;
+  transform: translateY(-1px);
+}
+</style>
+
 </body>
 </html>
